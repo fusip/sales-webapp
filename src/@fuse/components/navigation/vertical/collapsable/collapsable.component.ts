@@ -1,6 +1,6 @@
-import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
-import { Subject } from 'rxjs';
+import { merge, Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 
 import { FuseNavigationItem } from '@fuse/types';
@@ -30,10 +30,12 @@ export class FuseNavVerticalCollapsableComponent implements OnInit, OnDestroy
     /**
      * Constructor
      *
+     * @param {ChangeDetectorRef} _changeDetectorRef
      * @param {FuseNavigationService} _fuseNavigationService
      * @param {Router} _router
      */
     constructor(
+        private _changeDetectorRef: ChangeDetectorRef,
         private _fuseNavigationService: FuseNavigationService,
         private _router: Router
     )
@@ -111,6 +113,18 @@ export class FuseNavVerticalCollapsableComponent implements OnInit, OnDestroy
         {
             this.collapse();
         }
+
+        // Subscribe to navigation item
+        merge(
+            this._fuseNavigationService.onNavigationItemAdded,
+            this._fuseNavigationService.onNavigationItemUpdated,
+            this._fuseNavigationService.onNavigationItemRemoved
+        ).pipe(takeUntil(this._unsubscribeAll))
+         .subscribe(() => {
+
+             // Mark for check
+             this._changeDetectorRef.markForCheck();
+         });
     }
 
     /**
@@ -154,6 +168,10 @@ export class FuseNavVerticalCollapsableComponent implements OnInit, OnDestroy
         }
 
         this.isOpen = true;
+
+        // Mark for check
+        this._changeDetectorRef.markForCheck();
+
         this._fuseNavigationService.onItemCollapseToggled.next();
     }
 
@@ -168,6 +186,10 @@ export class FuseNavVerticalCollapsableComponent implements OnInit, OnDestroy
         }
 
         this.isOpen = false;
+
+        // Mark for check
+        this._changeDetectorRef.markForCheck();
+
         this._fuseNavigationService.onItemCollapseToggled.next();
     }
 
@@ -181,23 +203,30 @@ export class FuseNavVerticalCollapsableComponent implements OnInit, OnDestroy
      */
     isChildrenOf(parent, item): boolean
     {
-        if ( !parent.children )
+        const children = parent.children;
+
+        if ( !children )
         {
             return false;
         }
 
-        if ( parent.children.indexOf(item) !== -1 )
+        if ( children.indexOf(item) > -1 )
         {
             return true;
         }
 
-        for ( const children of parent.children )
+        for ( const child of children )
         {
-            if ( children.children )
+            if ( child.children )
             {
-                return this.isChildrenOf(children, item);
+                if ( this.isChildrenOf(child, item) )
+                {
+                    return true;
+                }
             }
         }
+
+        return false;
     }
 
     /**
@@ -210,22 +239,24 @@ export class FuseNavVerticalCollapsableComponent implements OnInit, OnDestroy
      */
     isUrlInChildren(parent, url): boolean
     {
-        if ( !parent.children )
+        const children = parent.children;
+
+        if ( !children )
         {
             return false;
         }
 
-        for ( let i = 0; i < parent.children.length; i++ )
+        for ( const child of children )
         {
-            if ( parent.children[i].children )
+            if ( child.children )
             {
-                if ( this.isUrlInChildren(parent.children[i], url) )
+                if ( this.isUrlInChildren(child, url) )
                 {
                     return true;
                 }
             }
 
-            if ( parent.children[i].url === url || url.includes(parent.children[i].url) )
+            if ( child.url === url || url.includes(child.url) )
             {
                 return true;
             }

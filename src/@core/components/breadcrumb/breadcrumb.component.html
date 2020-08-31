@@ -1,0 +1,24 @@
+<div fxFlex="0 1 auto" fxLayout="row" fxLayoutAlign="start center">
+
+    <button mat-button class="breadcrumb-item pr-0"
+            *ngFor="let item of breadcrumb;let last=last; let first=first; let size=count"
+            [routerLink]="[item.url || '/dashboard']"
+            [matTooltip] = '(item.translate || item.title) | translate'
+            [ngClass]="{'pl-0': !first}">
+            
+        <div fxLayout="row" fxLayoutAlign="center center">
+
+            <mat-icon class="secondary-text s-32" *ngIf="item.icon" [fxHide]="last && size > 1">{{ item.icon }}</mat-icon>
+
+            <span *ngIf="!item.icon" class="secondary-text text-bold m-4 font-size-24" [fxHide]="last && size > 1">
+                    {{ ((item.translate || item.title) | translate).substr(0, 1).toUpperCase()}}
+                </span>
+
+            <span class="mr-12" [fxHide]="!last" fxShow.gt-sm [ngClass]="{'pl-4': last}">{{ (item.translate || item.title) | translate }}</span>
+            
+            <mat-icon class="s-16" [fxHide]="last" >keyboard_arrow_right</mat-icon>
+
+        </div>
+
+    </button>
+</div>

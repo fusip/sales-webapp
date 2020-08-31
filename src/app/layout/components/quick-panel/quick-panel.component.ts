@@ -8,10 +8,7 @@ import { Component, ViewEncapsulation } from '@angular/core';
 })
 export class QuickPanelComponent
 {
-    date: Date;
-    events: any[];
-    notes: any[];
-    settings: any;
+    apps: any[];
 
     /**
      * Constructor
@@ -19,11 +16,11 @@ export class QuickPanelComponent
     constructor()
     {
         // Set the defaults
-        this.date = new Date();
-        this.settings = {
-            notify: true,
-            cloud : false,
-            retro : true
-        };
+        
+        this.apps = [{
+            id   : '2e5d90a5-7883-4177-975a-624f55874b2c',
+            name : 'Template App',
+            description: 'Starter template for apps'
+        }];
     }
 }

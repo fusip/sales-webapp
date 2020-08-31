@@ -1,0 +1,12 @@
+@import "src/@fuse/scss/fuse";
+
+app-breadcrumb{
+
+    .breadcrumb-item{
+        height: 64px;
+        
+        @include media-breakpoint('xs') {
+            height: 56px;
+        }
+    }
+}
